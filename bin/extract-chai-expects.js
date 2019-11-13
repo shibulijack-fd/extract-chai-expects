@@ -3,7 +3,7 @@
 const program = require("commander");
 
 program
-  .version("1.1.0", "-v, --version", "CLI Version")
+  .version("1.2.0", "-v, --version", "CLI Version")
   .usage("[path...] [options]")
   .description(
     "Node CLI tool to extract chai assertions - expect statements from JS test files."
