@@ -1,0 +1,14 @@
+{
+  "name": "find-expect",
+  "version": "1.0.0",
+  "description": "Find unique expect statements",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "author": "Shibu Lijack",
+  "license": "MIT",
+  "dependencies": {
+    "recast": "^0.18.5"
+  }
+}

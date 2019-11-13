@@ -1,0 +1,10 @@
+[
+	".to.be.true",
+	".to.not.be",
+	".to.be.false",
+	".to.be.ok",
+	".to.be.empty",
+	".to.equal(true)",
+	".to.equal('[Expected] Page Title')",
+	".to.have.length"
+]
