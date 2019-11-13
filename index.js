@@ -9,7 +9,9 @@ let expectStatements = [];
 recast.visit(ast, { 
   visitCallExpression: function(path) {
     if (path.node.callee.name === 'expect') {
-      const prettyPrint = recast.print(path.parentPath.parentPath.parentPath.node).code;
+      let currentNode = path.parentPath.parentPath.parentPath.node;
+      currentNode = (currentNode && currentNode.callee) ? currentNode.callee : currentNode;
+      const prettyPrint = recast.print(currentNode).code;
       console.log(prettyPrint);
       let chaiPart = prettyPrint;
       if (prettyPrint.indexOf('.to.')) {
