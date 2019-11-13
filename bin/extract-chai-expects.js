@@ -6,7 +6,7 @@ program
   .version("1.0.0", "-v, --version", "CLI Version")
   .usage("[path...] [options]")
   .description(
-    "Node tool to extract chai assertions - expect statements from JS test files."
+    "Node CLI tool to extract chai assertions - expect statements from JS test files."
   )
   .option("-s, --sourceDir [directory]", "Specify the directory of JS files.")
   .arguments("<path>")
