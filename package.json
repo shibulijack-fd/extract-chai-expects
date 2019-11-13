@@ -11,6 +11,8 @@
   "author": "Shibu Lijack",
   "license": "MIT",
   "dependencies": {
-    "recast": "^0.18.5"
+    "colors": "^1.4.0",
+    "recast": "^0.18.5",
+    "walk-sync": "^2.0.2"
   }
 }

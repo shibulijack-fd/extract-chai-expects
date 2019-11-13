@@ -1,9 +1,21 @@
 [
-	".to.be.true",
-	".to.not.be",
-	".to.be.false",
-	".to.be.ok",
-	".to.be.empty",
 	".to.equal",
-	".to.have.length"
+	".to.be.ok",
+	".to.exist;",
+	".to.exist",
+	".to.not.be",
+	".to.be.equal",
+	".to.contain",
+	".to.includes",
+	".to.be.oneOf",
+	".to.have.members",
+	".to.be.null",
+	".to.have.attr",
+	".to.have.length",
+	".to.not.exist",
+	".to.be.true",
+	".to.be.exist",
+	".to.include",
+	".to.eq",
+	".to.have.been"
 ]
