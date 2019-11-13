@@ -1,83 +1,249 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { setupRenderingTest } from 'ember-mocha';
 import {
+  click,
   find,
   findAll,
   render,
-  triggerEvent
+  triggerKeyEvent
 } from '@ember/test-helpers';
 import hbs from 'htmlbars-inline-precompile';
-import contact from 'freshdesk/tests/fixtures/contact';
+import { typeInSearch, clickTrigger } from 'freshdesk/tests/helpers/ember-power-select';
+import { setupRenderingWithMirage } from '@freshdesk/test-helpers';
 
-import { setupTranslations, stubRouter } from '@freshdesk/test-helpers';
+describe('Integration | Component | module-tickets/new-ticket/add-requester', function() {
+  setupRenderingWithMirage();
 
-describe('Integration | Component | module-contacts/contact-details/contact-info', function() {
-  let hooks = setupRenderingTest();
-  setupTranslations(hooks);
+  it('should have name, email, company and phone field', async function() {
+    let contact = {
+      name: null,
+      email: null,
+      company_name: null,
+      phone: null
+    };
+    let createdContact = this.get('store').createRecord('contact', contact);
+    this.set('contact', createdContact);
 
-  let newTicket = '[data-test-id="add-tags"]';
+    await render(hbs `{{module-tickets/new-ticket/add-requester model=contact startValidate=false}}`);
 
-  hooks.beforeEach(function() {
-    stubRouter();
-
-    this.store = this.owner.lookup('service:store');
-    this.get('store').pushPayload('contact', contact);
-    this.set('contact', this.get('store').peekRecord('contact', 1));
+    expect(find('[data-test-id="requesterName"]')).to.not.be.null;
+    expect(find('[data-test-id="requesterEmail"]')).to.not.be.null;
+    expect(find('[data-test-id="requesterPhone"]')).to.not.be.null;
+    expect(find('[data-test-id="requesterCompany"]')).to.not.be.null;
   });
 
-  it('renders', async function() {
-    await render(hbs`{{module-contacts/contact-details/contact-info contact=contact}}`);
+  it('should be able to validate existing email Id', async function() {
+    let contact = {
+      name: 'annie',
+      email: 'andrew07@hotmail.com',
+      company_name: null,
+      phone: null
+    };
+    this.set('startValidate', true);
+    let createdContact = this.get('store').createRecord('contact', contact);
+    this.set('contact', createdContact);
 
-    expect(this.element).to.not.be.null;
+    await render(hbs `{{module-tickets/new-ticket/add-requester model=contact startValidate=startValidate}}`);
+
+    await click('.add-requester');
+
+    expect(find('.help-block')).to.not.be.null;
+    expect(find('[data-test-id="requesterEmail"] .help-block').textContent.trim()).to.be.equal(`A contact with this email "${contact.email}" already exists`);
   });
 
-  // TODO:: [FIXTEST]: Not sure why this if checks are for.
-  it('verify tags are rendered', async function() {
-    await render(hbs`{{module-contacts/contact-details/contact-info contact=contact contactFields=contactFields}}`);
+  it('should be able to validate invalid email Id', async function() {
+    let contact = {
+      name: 'annie',
+      email: 'annanielsen',
+      company_name: null,
+      phone: null
+    };
+    this.set('startValidate', true);
+    let createdContact = this.get('store').createRecord('contact', contact);
+    this.set('contact', createdContact);
 
-    if (findAll('[data-test-tags]').length > 0) {
-      if (findAll('[data-test-remaining-count]').length > 0) {
-        await triggerEvent('[data-test-remaining-count]', 'mouseenter');
+    await render(hbs `{{module-tickets/new-ticket/add-requester model=contact startValidate=startValidate}}`);
 
-        let dataLength = findAll('[data-test-filtered-data]').length + findAll('[data-test-remaining-data]').length;
+    await click('.add-requester');
 
-        expect(dataLength).to.be.equal(this.get('contact.tags.length'));
-      } else {
-        expect(findAll('[data-test-filtered-data]').length).to.be.equal(this.get('contact.tags.length'));
-      }
-    }
+    expect(find('.help-block')).to.not.be.null;
+    expect(find('[data-test-id="requesterEmail"] .help-block').textContent.trim()).to.be.equal('Please enter a valid email');
   });
 
-  it('renders new ticket', async function() {
-    await render(hbs`{{module-contacts/contact-details/contact-info contact=contact}}`);
+  it('should show "fill at least one field" message when email or phone is empty', async function() {
+    let contact = {
+      name: 'annie',
+      email: null,
+      company_name: null,
+      phone: null
+    };
+    this.set('startValidate', true);
+    let createdContact = this.get('store').createRecord('contact', contact);
+    this.set('contact', createdContact);
 
-    expect(this.element).to.not.be.null;
+    await render(hbs `{{module-tickets/new-ticket/add-requester model=contact startValidate=startValidate}}`);
+
+    await click('.add-requester');
+
+    expect(findAll('.help-block')).to.have.length(2);
+    expect(find('[data-test-id="requesterEmail"] .help-block').textContent.trim()).to.be.equal('Please fill at least one of these fields');
+    expect(find('[data-test-id="requesterPhone"] .help-block').textContent.trim()).to.be.equal('Please fill at least one of these fields');
   });
 
-  it('verify ticket icon is rendered', async function() {
-    await render(hbs`{{module-contacts/contact-details/contact-info contact=contact validContact=true}}`);
+  it('should not show any error when all field is valid', async function() {
+    let contact = {
+      name: 'annie',
+      email: null,
+      company_name: null,
+      phone: '2131231'
+    };
+    this.set('startValidate', true);
+    let createdContact = this.get('store').createRecord('contact', contact);
+    this.set('contact', createdContact);
 
-    expect(find('[data-test-icon="add-tags"]')).to.not.be.null;
-    expect(find('[data-test-phone-option]')).to.be.null;
-    expect(find(newTicket).textContent.trim()).to.equal('New ticket');
+    await render(hbs `{{module-tickets/new-ticket/add-requester model=contact startValidate=startValidate}}`);
+
+    await click('.add-requester');
+
+    expect(find('.help-block')).to.be.null;
   });
 
-  it('will truncate name longer than 120 characters', async function() {
-    let name = 'VeryBigTestname'.repeat(9);
-    let contact = this.get('contact');
-    contact.set('name', name);
-    await this.render(hbs`{{module-contacts/contact-details/contact-info contact=contact validContact=true}}`);
-    expect(this.$('[data-test-id="contact__info__name"]')).to.have.length(1);
-    expect(find('[data-test-id="contact__info__name"]').textContent.trim()).to.have.length(123);
+  it('should show error message if name field left as blank', async function() {
+    let contact = {
+      name: '  ',
+      email: 'timoky@mohwak.com',
+      company_name: 'abc',
+      phone: '2131231'
+    };
+    this.set('startValidate', true);
+    let createdContact = this.get('store').createRecord('contact', contact);
+    this.set('contact', createdContact);
+
+    await render(hbs `{{module-tickets/new-ticket/add-requester model=contact startValidate=startValidate}}`);
+
+    await click('.add-requester');
+
+    expect(find('.help-block')).to.not.be.null;
+    expect(find('[data-test-id="requesterName"] .help-block').textContent.trim()).to.be.equal('This field can\'t be blank');
   });
 
-  it('will not truncate name shorter than 120 characters', async function() {
-    let name = 'VeryBigTestname'.repeat(8);
-    let contact = this.get('contact');
-    contact.set('name', name);
-    await this.render(hbs`{{module-contacts/contact-details/contact-info contact=contact validContact=true}}`);
-    expect(this.$('[data-test-id="contact__info__name"]')).to.have.length(1);
-    expect(find('[data-test-id="contact__info__name"]').textContent.trim()).to.have.length(120);
+  it('should not allow blank in email or phone', async function() {
+    let contact = {
+      name: 'annie',
+      email: ' ',
+      company_name: 'abc',
+      phone: '  '
+    };
+    this.set('startValidate', true);
+    let createdContact = this.get('store').createRecord('contact', contact);
+    this.set('contact', createdContact);
+
+    await render(hbs `{{module-tickets/new-ticket/add-requester model=contact startValidate=startValidate}}`);
+
+    await click('.add-requester');
+
+    expect(findAll('.help-block')).to.have.length(2);
+    expect(find('[data-test-id="requesterEmail"] .help-block').textContent.trim()).to.be.equal('Please fill at least one of these fields');
+    expect(find('[data-test-id="requesterPhone"] .help-block').textContent.trim()).to.be.equal('Please fill at least one of these fields');
+  });
+
+  it('should be to able to search and select company value and show the options to create when it has no exact match', async function() {
+    let contact = {
+      name: 'annie',
+      email: null,
+      company_name: null,
+      phone: 12121122
+    };
+    this.set('startValidate', true);
+    let createdContact = this.get('store').createRecord('contact', contact);
+    this.set('contact', createdContact);
+
+    await render(hbs `{{module-tickets/new-ticket/add-requester model=contact startValidate=startValidate}}`);
+
+    await clickTrigger();
+    await typeInSearch('Allen');
+
+    expect(find('input[type="search"]').value.trim()).to.be.equal('Allen');
+    expect(findAll('.ember-power-select-options').length, 4);
+    expect(find('.ember-power-select-option[aria-current="true"]').textContent.trim()).to.be.equal('Add "Allen"...');
+
+    await triggerKeyEvent('.ember-power-select-trigger', 'keydown', 40);
+    expect(find('.ember-power-select-option[aria-current="true"]').textContent.trim()).to.be.equal('Allen LLC');
+
+    await click(findAll('.ember-power-select-option')[1]);
+    expect(find('.ember-power-select-dropdown')).to.be.null;
+    expect(find('.ember-power-select-selected-item').textContent.trim()).to.have.string('Allen LLC');
+  });
+
+  it('should be able to replace the existing company value when selecting second time', async function() {
+    let contact = {
+      name: 'annie',
+      email: null,
+      company_name: null,
+      phone: 12121122
+    };
+    this.set('startValidate', true);
+    let createdContact = this.get('store').createRecord('contact', contact);
+    this.set('contact', createdContact);
+
+    await render(hbs `{{module-tickets/new-ticket/add-requester model=contact startValidate=startValidate}}`);
+
+    await clickTrigger();
+    await typeInSearch('Allen');
+    expect(findAll('.ember-power-select-options').length, 4);
+
+    await click(findAll('.ember-power-select-option')[1]);
+    expect(find('.ember-power-select-dropdown')).to.be.null;
+    expect(find('.ember-power-select-selected-item').textContent.trim()).to.have.string('Allen LLC');
+
+    await clickTrigger();
+    await typeInSearch('Allen');
+    await click(findAll('.ember-power-select-option')[2]);
+    expect(find('.ember-power-select-dropdown')).to.be.null;
+    expect(find('.ember-power-select-selected-item').textContent.trim()).to.have.string('Allen, Gonzalez and Houston');
+  });
+
+  it('should be able to select the new company value', async function() {
+    let contact = {
+      name: 'annie',
+      email: null,
+      company_name: null,
+      phone: 12121122
+    };
+    this.set('startValidate', true);
+    let createdContact = this.get('store').createRecord('contact', contact);
+    this.set('contact', createdContact);
+
+    await render(hbs `{{module-tickets/new-ticket/add-requester model=contact startValidate=startValidate}}`);
+
+    await clickTrigger();
+    await typeInSearch('CompanyIsFakeAndNewOne');
+    expect(findAll('.ember-power-select-options').length, 1);
+
+    await click(findAll('.ember-power-select-option')[0]);
+    expect(find('.ember-power-select-dropdown')).to.be.null;
+    expect(find('.ember-power-select-selected-item').textContent.trim()).to.have.string('CompanyIsFakeAndNewOne');
+  });
+
+  it('should not show an option to add company if there is a company exist with same name', async function() {
+    let contact = {
+      name: 'annie',
+      email: null,
+      company_name: null,
+      phone: 12121122
+    };
+    this.set('startValidate', true);
+    let createdContact = this.get('store').createRecord('contact', contact);
+    this.set('contact', createdContact);
+
+    await render(hbs `{{module-tickets/new-ticket/add-requester model=contact startValidate=startValidate}}`);
+
+    await clickTrigger();
+    await typeInSearch('Allen LLC');
+    expect(findAll('.ember-power-select-options').length, 1);
+
+    await click(findAll('.ember-power-select-option')[0]);
+    expect(find('.ember-power-select-dropdown')).to.be.null;
+    expect(find('.ember-power-select-selected-item').textContent.trim()).to.have.string('Allen LLC');
   });
 });

@@ -1,18 +1,26 @@
 {
-  "name": "find-expect",
+  "name": "extract-chai-expects",
   "version": "1.0.0",
   "description": "Find unique expect statements",
   "main": "index.js",
+  "bin": {
+    "extract-chai-expects": "./bin/extract-chai-expects.js"
+  },
   "scripts": {
     "start": "node index.js",
     "debug": "node --inspect-brk index.js",
     "test": "npm test"
   },
   "author": "Shibu Lijack",
+  "repository": "https://github.com/shibulijack-fd/extract-chai-expects",
   "license": "MIT",
   "dependencies": {
     "colors": "^1.4.0",
+    "commander": "^4.0.1",
     "recast": "^0.18.5",
     "walk-sync": "^2.0.2"
+  },
+  "devDependencies": {
+    "@babel/parser": "^7.7.3"
   }
 }
