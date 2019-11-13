@@ -4,6 +4,8 @@
   "description": "Find unique expect statements",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
+    "debug": "node --inspect-brk index.js",
     "test": "npm test"
   },
   "author": "Shibu Lijack",
